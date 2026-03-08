@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mama Chef</title>
+<style>
+:root{--red:#c0392b;--redL:#e74c3c;--green:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--bg:#fdf6ee;--card:#fff;--text:#3a2a1a;--muted:#999;--border:#f0ebe4;--chicken:#d4a017;--fish:#1e88e5;--veggie:#43a047;--meat:#8d3b2b}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;font-size:14px}button{font-family:inherit;cursor:pointer}
+.header{background:linear-gradient(135deg,var(--red),var(--redL));padding:14px 16px 0;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header h1{color:#fff;font-size:20px;font-weight:800;letter-spacing:1px}.mama{font-size:36px}
+.sync-ind{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px}
+.tabs{display:flex;margin-top:8px}.tab{flex:1;padding:10px 0;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;border-bottom:3px solid transparent;text-align:center;transition:.2s}.tab.active{color:#fff;border-bottom-color:#fff}
+.page{display:none;padding:10px}.page.show{display:block}
+.card{background:var(--card);border-radius:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden}
+.card-head{display:flex;align-items:center;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-wrap:wrap;gap:4px}
+.arrow{font-size:16px;color:#bbb;margin-left:6px;transition:transform .3s}.arrow.open{transform:rotate(180deg)}
+.card-body{display:none;padding:0 14px 14px}.card-body.show{display:block}
+.ck{width:24px;height:24px;border:2.5px solid #ccc;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-right:10px;transition:.2s;cursor:pointer}
+.ck.on{background:var(--green);border-color:var(--green)}.ck.on::after{content:'✓';color:#fff;font-size:13px;font-weight:700}
+.done-card{opacity:.55}.done-card .m-name{text-decoration:line-through;color:#aaa}
+.m-name{font-weight:700;font-size:14px;flex:1;min-width:0}.m-time{font-size:11px;color:var(--muted);margin-left:6px;white-space:nowrap}
+.cat-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;color:#fff;white-space:nowrap}
+.cat-Chicken{background:var(--chicken)}.cat-Fish{background:var(--fish)}.cat-Veggie{background:var(--veggie)}.cat-Meat{background:var(--meat)}
+.stitle{font-weight:700;font-size:12px;color:var(--red);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);padding-bottom:3px}
+.ing{font-size:13px;line-height:1.5;padding:3px 0}
+.stp{display:flex;align-items:flex-start;padding:6px 0}.stp-n{background:var(--red);color:#fff;min-width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-right:8px;margin-top:1px}.stp-t{font-size:13px;line-height:1.45}
+.mrow{display:flex;gap:4px;margin:8px 0}.mbox{flex:1;background:var(--bg);border-radius:8px;padding:8px 4px;text-align:center}.mbox .v{font-size:16px;font-weight:800}.mbox .l{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px}
+.pills{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}.pill{background:#f0ebe4;border-radius:6px;padding:3px 7px;font-size:10px;color:#666}.pill b{color:var(--text)}
+/* Planner */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px}
+.week-nav button{background:var(--card);border:1px solid #ddd;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700}
+.week-nav .wn-title{text-align:center;flex:1}
+.week-nav .wn-title .wn-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.week-nav .wn-title .wn-dates{font-size:14px;font-weight:700}
+.week-dots{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+.week-dot{width:10px;height:10px;border-radius:50%;background:#ddd;cursor:pointer;transition:.2s}
+.week-dot.active{background:var(--red);transform:scale(1.3)}
+.week-dot.has-meals{background:var(--green)}
+.week-dot.active.has-meals{background:var(--red)}
+.plan-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.plan-cell{background:var(--card);border-radius:10px;padding:6px 4px;min-height:90px;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;border:2px solid transparent;transition:border-color .2s;position:relative}
+.plan-cell.active{border-color:var(--red)}.plan-cell.today{border-color:var(--blue)}.plan-cell.past{opacity:.5}
+.plan-cell .pc-day{font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;text-align:center}
+.plan-cell .pc-date{font-size:16px;font-weight:800;color:var(--text);text-align:center;margin:1px 0}
+.plan-cell .pc-meals{margin-top:3px}
+.plan-cell .pc-meal{font-size:8px;background:var(--bg);border-radius:3px;padding:2px 3px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.plan-cell .pc-meal.cat-Chicken{border-left:3px solid var(--chicken)}.plan-cell .pc-meal.cat-Fish{border-left:3px solid var(--fish)}
+.plan-cell .pc-meal.cat-Veggie{border-left:3px solid var(--veggie)}.plan-cell .pc-meal.cat-Meat{border-left:3px solid var(--meat)}
+.plan-cell .pc-empty{font-size:18px;color:#ddd;text-align:center;margin-top:6px}
+.plan-editor{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px}
+.plan-editor h3{font-size:14px;margin-bottom:8px}
+.plan-slot{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}.plan-slot:last-child{border-bottom:none}
+.plan-slot select{flex:1;border:1px solid #ddd;border-radius:8px;padding:7px 8px;font-size:13px;background:#fff;color:var(--text)}
+.plan-slot .rm{width:28px;height:28px;border:none;background:#eee;color:#999;border-radius:7px;margin-left:6px;font-size:16px;display:flex;align-items:center;justify-content:center}
+.add-slot{background:none;border:1px dashed #ccc;color:var(--muted);padding:6px;border-radius:8px;width:100%;font-size:12px;cursor:pointer;margin-top:4px}
+.deploy-btn{background:var(--green);color:#fff;border:none;padding:12px;border-radius:10px;width:100%;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+.deploy-btn.current{background:var(--blue)}
+.alert{padding:10px 14px;border-radius:10px;font-size:12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.alert-warn{background:#fff3e0;color:#e65100;border:1px solid #ffcc02}.alert-good{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}.alert-bad{background:#fce4ec;color:#c62828;border:1px solid #ef9a9a}
+.group-hdr{display:flex;align-items:center;gap:8px;margin:14px 0 6px;padding:8px 12px;border-radius:10px;font-weight:700;font-size:13px;color:#fff}
+.group-Chicken{background:var(--chicken)}.group-Fish{background:var(--fish)}.group-Veggie{background:var(--veggie)}.group-Meat{background:var(--meat)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav button{background:var(--card);border:1px solid #ddd;border-radius:8px;padding:6px 12px;font-size:13px}
+.cal-nav .cal-title{font-weight:700;font-size:15px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px}
+.cal-hdr{text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px}
+.cal-cell{background:var(--card);border-radius:6px;min-height:44px;padding:3px;cursor:pointer;border:2px solid transparent}
+.cal-cell.today{border-color:var(--red)}.cal-cell.has-data{background:#e8f8f0}.cal-cell.selected{border-color:var(--blue)}.cal-cell.empty{background:transparent}
+.cal-cell .cd{font-size:11px;font-weight:700}.cal-cell .cc{font-size:8px;color:var(--green);font-weight:700;margin-top:1px}
+.cal-detail{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}.cal-detail h3{font-size:14px;margin-bottom:8px}
+.cal-meal-item{padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}.cal-meal-item:last-child{border-bottom:none}
+.fam-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.fam-chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #ddd;background:#fff}
+.fam-chip.active{border-color:var(--red);background:#fde8e5;color:var(--red)}.fam-add{border:2px dashed #ccc;color:var(--muted)}
+.fam-input{display:none;gap:6px;margin-bottom:10px}.fam-input.show{display:flex}
+.fam-input input{flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px}
+.fam-input button{padding:8px 14px;border:none;background:var(--red);color:#fff;border-radius:8px;font-size:13px;font-weight:600}
+.avg-row{display:flex;gap:4px;margin:8px 0}.avg-b{flex:1;text-align:center;background:var(--bg);border-radius:8px;padding:8px 4px}
+.avg-b .v{font-size:15px;font-weight:800}.avg-b .l{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:1px}
+.info{font-size:11px;color:var(--muted);text-align:center;padding:8px}
+.btn-sm{background:var(--card);border:1px solid #ddd;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600}
+.section-label{font-weight:700;font-size:13px;color:var(--red);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.4px}
+.search-box{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px;background:var(--card)}
+.cat-filters{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.cat-f{padding:5px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:var(--muted)}
+.cat-f.active{border-color:var(--red);background:#fde8e5;color:var(--red)}
+.import-box{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}.import-box h3{font-size:14px;margin-bottom:8px}
+.import-row{display:flex;gap:6px}.import-row input{flex:1;padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px}
+.import-btn{padding:9px 16px;border:none;background:var(--red);color:#fff;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap}.import-btn:disabled{opacity:.5}
+.import-status{font-size:12px;margin-top:8px;padding:8px;border-radius:8px}
+.import-status.loading{background:#fff8e1;color:#f57f17}.import-status.error{background:#fce4ec;color:#c62828}
+.import-preview{background:var(--bg);border-radius:10px;padding:12px;margin-top:8px}.import-preview h4{font-size:13px;margin-bottom:6px}
+.import-actions{display:flex;gap:8px;margin-top:10px}.import-actions button{flex:1;padding:10px;border:none;border-radius:8px;font-size:13px;font-weight:700}
+.import-save{background:var(--green);color:#fff}.import-discard{background:#eee;color:#666}
+.bulk-area{width:100%;min-height:70px;padding:9px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;resize:vertical}
+.bulk-item{font-size:11px;padding:3px 0;display:flex;align-items:center;gap:6px}
+@media(max-width:500px){.plan-grid{gap:3px}.plan-cell{padding:4px 2px;min-height:75px}.plan-cell .pc-date{font-size:14px}.plan-cell .pc-meal{font-size:7px}}
+</style>
+</head>
+<body>
+<div class="header">
+<span class="mama">👩‍🍳</span><h1>MAMA CHEF</h1>
+<div class="sync-ind" id="sync-ind">Loading...</div>
+<div class="tabs">
+<div class="tab active" data-t="meals">This Week</div>
+<div class="tab" data-t="plan">Plan</div>
+<div class="tab" data-t="recipes">Recipes</div>
+<div class="tab" data-t="history">History</div>
+</div>
+</div>
+<div class="page show" id="p-meals"></div>
+<div class="page" id="p-plan"></div>
+<div class="page" id="p-recipes"></div>
+<div class="page" id="p-history"></div>
+<script>
+// ===== RECIPES =====
+const B=[
+{id:0,meal:"Mince Kebabs",cat:"Meat",time:"38m",serves:5,cal:580,pro:38,carb:42,fat:28,fiber:3,ing:["1kg minced beef/lamb","1 onion, grated","Garlic, cumin, coriander, paprika","Chilli, salt, pepper, parsley, bicarb","Olive oil, red onion, sumac, lemon","Greek yoghurt, flatbreads, tomatoes"],stp:["Preheat 240°C. Mix mince with spices, knead 2 min.","Press onto tray, score strips. Bake 15-18 min.","Make sumac onions and yoghurt sauce.","Assemble in warm flatbreads."]},
+{id:1,meal:"Greek Chicken Risoni",cat:"Chicken",time:"1h10m",serves:4,cal:685,pro:48,carb:52,fat:30,fiber:3,ing:["5-6 chicken thighs","Olive oil, lemon, garlic, oregano, paprika","Risoni, chicken stock","Spinach, parmesan, feta"],stp:["Marinate chicken. Roast 35 min at 200°C.","Add risoni and stock. Bake 18-20 min.","Stir in spinach, parmesan. Top with feta."]},
+{id:2,meal:"Minestrone Soup",cat:"Veggie",time:"40m",serves:4,cal:320,pro:14,carb:48,fat:8,fiber:9,ing:["Olive oil, onion, carrots, celery, garlic","Tinned tomatoes, stock","Cannellini beans, small pasta","Spinach, parmesan"],stp:["Sauté veg. Add tomatoes, stock.","Add beans, pasta 10-12 min. Stir in greens."]},
+{id:3,meal:"Chicken Sausage Pasta",cat:"Chicken",time:"30m",serves:2,cal:620,pro:42,carb:55,fat:24,fiber:5,ing:["Pasta, broccoli","5 chicken sausages","Fennel seeds, chilli, garlic, onion","Crème fraîche, parmesan, lemon"],stp:["Cook pasta + broccoli. Brown sausage meat.","Add aromatics, crème fraîche. Toss everything."]},
+{id:4,meal:"Shepherd's Pie",cat:"Meat",time:"1h15m",serves:5,cal:550,pro:30,carb:42,fat:28,fiber:4,ing:["500g lamb mince","Onion, carrots, celery, garlic","Tomato paste, Worcestershire, stock, thyme","Potatoes, butter, milk, cheddar"],stp:["Brown lamb. Cook veg. Simmer 20 min.","Mash potatoes. Top and bake 200°C 25 min."]},
+{id:5,meal:"Chicken Curry",cat:"Chicken",time:"45m",serves:4,cal:580,pro:36,carb:52,fat:24,fiber:4,ing:["600g chicken thighs","Onion, garlic, ginger","Curry powder, cumin, turmeric","Coconut milk, tomatoes, stock, rice"],stp:["Cook aromatics. Add chicken, then liquids.","Simmer 25 min. Serve with rice."]},
+{id:6,meal:"Baked Fish & Beans",cat:"Fish",time:"25m",serves:3,cal:340,pro:35,carb:22,fat:12,fiber:6,ing:["4 white fish fillets","Olive oil, lemon, garlic, paprika","Cherry tomatoes, butter beans, olives, rocket"],stp:["Toss veg in dish. Top with fish.","Bake 200°C 18-20 min."]},
+{id:7,meal:"Spaghetti Bolognese",cat:"Meat",time:"50m",serves:4,cal:560,pro:32,carb:58,fat:20,fiber:4,ing:["500g beef mince","Onion, carrots, celery, garlic","Tomatoes, paste, wine, oregano","Spaghetti, parmesan"],stp:["Brown mince. Sauté veg. Simmer 30 min.","Cook pasta. Serve."]},
+{id:8,meal:"Chicken Stir-Fry",cat:"Chicken",time:"20m",serves:2,cal:420,pro:38,carb:35,fat:14,fiber:4,ing:["400g chicken breast","Pepper, broccoli, carrots","Garlic, ginger, soy, honey, sesame oil","Rice or noodles"],stp:["Stir-fry chicken. Cook veg. Add sauce."]},
+{id:9,meal:"Prawn Tacos",cat:"Fish",time:"20m",serves:2,cal:380,pro:28,carb:36,fat:14,fiber:4,ing:["300g prawns, cumin, paprika","Tortillas, avocado","Red cabbage, sour cream, lime"],stp:["Cook prawns. Assemble tacos."]},
+{id:10,meal:"Veggie Chilli",cat:"Veggie",time:"40m",serves:4,cal:350,pro:15,carb:52,fat:8,fiber:12,ing:["Onion, peppers, garlic, spices","Tomatoes, kidney & black beans","Sweetcorn, rice, sour cream"],stp:["Sauté veg. Add beans, simmer 25 min."]},
+{id:11,meal:"Salmon Teriyaki",cat:"Fish",time:"20m",serves:2,cal:450,pro:38,carb:30,fat:20,fiber:2,ing:["2 salmon fillets","Soy, mirin, honey, ginger, garlic","Rice, greens, sesame seeds"],stp:["Pan-fry salmon. Add sauce. Serve with rice."]},
+{id:12,meal:"Mushroom Risotto",cat:"Veggie",time:"40m",serves:4,cal:480,pro:14,carb:62,fat:18,fiber:3,ing:["Arborio rice, mushrooms","Onion, garlic, white wine","Veg stock, butter, parmesan, thyme"],stp:["Sauté mushrooms. Toast rice. Add stock gradually."]},
+{id:13,meal:"Lamb Chops & Mash",cat:"Meat",time:"30m",serves:2,cal:620,pro:40,carb:35,fat:34,fiber:3,ing:["4 lamb chops, garlic, rosemary","Potatoes, butter, milk","Green beans, mint sauce"],stp:["Cook chops 3-4 min per side. Mash. Steam beans."]},
+{id:14,meal:"Thai Green Curry",cat:"Chicken",time:"30m",serves:4,cal:520,pro:34,carb:40,fat:24,fiber:3,ing:["500g chicken, green curry paste","Coconut milk, aubergine, beans","Courgette, basil, fish sauce, lime, rice"],stp:["Fry paste, add coconut milk, chicken, veg."]},
+{id:15,meal:"Fish Pie",cat:"Fish",time:"1h",serves:4,cal:520,pro:36,carb:40,fat:22,fiber:3,ing:["Mixed fish, prawns","Milk, butter, flour, leek, peas","Potatoes, cheddar, dill"],stp:["Poach fish. Make sauce. Top with mash. Bake."]},
+{id:16,meal:"Beef Tacos",cat:"Meat",time:"25m",serves:4,cal:480,pro:28,carb:38,fat:22,fiber:4,ing:["500g beef mince, onion, spices","Taco shells, lettuce, tomato","Cheese, sour cream, salsa"],stp:["Brown mince. Season. Assemble."]},
+{id:17,meal:"Carbonara",cat:"Meat",time:"20m",serves:2,cal:650,pro:30,carb:55,fat:34,fiber:2,ing:["Spaghetti, pancetta","Egg yolks, pecorino, parmesan"],stp:["Cook pasta. Fry pancetta. Toss with egg mixture off heat."]},
+{id:18,meal:"Chicken Fajitas",cat:"Chicken",time:"25m",serves:4,cal:450,pro:35,carb:38,fat:16,fiber:4,ing:["600g chicken, peppers, onion","Cumin, paprika, lime","Tortillas, guac, sour cream"],stp:["Cook chicken and veg. Serve in tortillas."]},
+{id:19,meal:"Tuna Pasta Bake",cat:"Fish",time:"40m",serves:4,cal:520,pro:32,carb:56,fat:18,fiber:3,ing:["Penne, tinned tuna","Onion, garlic, tomatoes","Sweetcorn, cheddar, breadcrumbs"],stp:["Make sauce. Mix with pasta. Bake with cheese."]},
+{id:20,meal:"Vegetable Lasagne",cat:"Veggie",time:"1h15m",serves:6,cal:420,pro:18,carb:45,fat:18,fiber:5,ing:["Courgettes, peppers, aubergine","Tomatoes, lasagne sheets","Béchamel, mozzarella, parmesan"],stp:["Roast veg. Layer. Bake 180°C 35-40 min."]},
+{id:21,meal:"Chicken Schnitzel",cat:"Chicken",time:"25m",serves:2,cal:520,pro:42,carb:30,fat:24,fiber:2,ing:["2 chicken breasts","Flour, eggs, breadcrumbs","Lemon, salad"],stp:["Flatten, coat, fry 3-4 min per side."]},
+{id:22,meal:"Pesto Pasta",cat:"Veggie",time:"15m",serves:2,cal:540,pro:18,carb:58,fat:26,fiber:3,ing:["Pasta, pesto, cherry tomatoes","Mozzarella, pine nuts, basil, parmesan"],stp:["Cook pasta. Toss with everything."]},
+{id:23,meal:"Beef Stew",cat:"Meat",time:"2h",serves:4,cal:480,pro:36,carb:34,fat:20,fiber:5,ing:["600g stewing beef","Onions, carrots, potatoes, celery","Tomatoes, stock, thyme, bay"],stp:["Brown beef. Add everything. Simmer 1.5-2h."]},
+{id:24,meal:"Pad Thai",cat:"Chicken",time:"25m",serves:2,cal:510,pro:30,carb:58,fat:18,fiber:3,ing:["Rice noodles, chicken, eggs","Beansprouts, spring onions","Fish sauce, tamarind, peanuts, lime"],stp:["Cook noodles, protein, eggs. Combine with sauce."]},
+{id:25,meal:"Shakshuka",cat:"Veggie",time:"25m",serves:2,cal:320,pro:18,carb:22,fat:18,fiber:5,ing:["Onion, peppers, garlic","Tomatoes, cumin, paprika","Eggs, feta, coriander, bread"],stp:["Cook veg and sauce. Crack eggs. Cover 5-7 min."]},
+{id:26,meal:"Honey Garlic Chicken",cat:"Chicken",time:"35m",serves:4,cal:460,pro:38,carb:30,fat:20,fiber:2,ing:["8 chicken thighs","Garlic, honey, soy, sesame oil","Rice, broccoli"],stp:["Brown chicken. Add sauce. Bake 20 min."]},
+{id:27,meal:"Fish Tacos",cat:"Fish",time:"20m",serves:2,cal:390,pro:30,carb:35,fat:14,fiber:3,ing:["300g white fish, cumin, paprika","Tortillas, red cabbage","Mango salsa, lime crema"],stp:["Cook fish. Assemble tacos."]},
+{id:28,meal:"Chicken Pie",cat:"Chicken",time:"1h",serves:4,cal:560,pro:35,carb:40,fat:28,fiber:3,ing:["500g chicken, leek, mushrooms","Butter, flour, stock, cream","Puff pastry, egg, thyme"],stp:["Make filling. Top with pastry. Bake 25-30 min."]},
+{id:29,meal:"Lentil Dhal",cat:"Veggie",time:"35m",serves:4,cal:340,pro:16,carb:48,fat:10,fiber:10,ing:["Red lentils, onion, garlic, ginger","Turmeric, cumin","Coconut milk, tomatoes, spinach, naan"],stp:["Sauté aromatics. Add lentils, liquids. Simmer 20 min."]},
+{id:30,meal:"BBQ Pulled Chicken",cat:"Chicken",time:"30m",serves:4,cal:440,pro:35,carb:42,fat:14,fiber:3,ing:["600g chicken thighs","BBQ sauce, paprika, garlic","Brioche buns, coleslaw"],stp:["Bake, shred, mix with sauce. Serve in buns."]},
+{id:31,meal:"Prawn Linguine",cat:"Fish",time:"20m",serves:2,cal:490,pro:32,carb:52,fat:16,fiber:3,ing:["Linguine, prawns","Garlic, chilli, butter","Tomatoes, white wine, parsley, lemon"],stp:["Cook pasta. Sauté prawns. Toss together."]},
+{id:32,meal:"Stuffed Peppers",cat:"Veggie",time:"45m",serves:4,cal:380,pro:18,carb:42,fat:16,fiber:5,ing:["4 peppers, cooked rice","Tomatoes, onion, feta","Olives, oregano, pine nuts"],stp:["Stuff peppers. Bake 190°C 30 min."]},
+{id:33,meal:"Chicken Noodle Soup",cat:"Chicken",time:"30m",serves:4,cal:310,pro:28,carb:30,fat:8,fiber:2,ing:["Chicken breasts, stock","Carrots, celery, onion","Noodles, dill, lemon"],stp:["Simmer and shred chicken. Cook veg and noodles."]},
+{id:34,meal:"Lamb Kofta Wraps",cat:"Meat",time:"30m",serves:4,cal:510,pro:32,carb:40,fat:24,fiber:3,ing:["500g lamb mince, onion, garlic","Cumin, coriander","Flatbreads, hummus, salad"],stp:["Shape koftas. Cook 8-10 min. Assemble wraps."]},
+{id:35,meal:"Prawn Fried Rice",cat:"Fish",time:"15m",serves:2,cal:420,pro:26,carb:50,fat:12,fiber:3,ing:["Day-old rice, prawns, eggs","Peas, spring onions","Soy, sesame oil, garlic, ginger"],stp:["Scramble eggs. Cook prawns. Toss rice on high heat."]},
+{id:36,meal:"Creamy Tuscan Chicken",cat:"Chicken",time:"30m",serves:4,cal:520,pro:40,carb:12,fat:34,fiber:2,ing:["4 chicken breasts","Sun-dried tomatoes, spinach","Garlic, cream, parmesan, basil"],stp:["Sear chicken. Make sauce. Return chicken."]},
+{id:37,meal:"Veggie Burrito Bowl",cat:"Veggie",time:"25m",serves:2,cal:450,pro:16,carb:62,fat:14,fiber:10,ing:["Rice, black beans, sweetcorn","Avocado, tomatoes, lime","Coriander, sour cream, hot sauce"],stp:["Prepare components. Assemble bowls."]},
+{id:38,meal:"Sausage Tray Bake",cat:"Meat",time:"40m",serves:4,cal:480,pro:24,carb:38,fat:26,fiber:4,ing:["8 sausages","Baby potatoes, peppers, onion","Courgettes, oil, paprika, rosemary"],stp:["Toss everything on tray. Roast 200°C 35-40 min."]},
+{id:39,meal:"Chicken Caesar Salad",cat:"Chicken",time:"20m",serves:2,cal:420,pro:38,carb:18,fat:22,fiber:3,ing:["2 chicken breasts","Romaine, Caesar dressing","Parmesan, croutons, lemon"],stp:["Grill chicken. Toss salad. Top."]},
+{id:40,meal:"Butternut Squash Soup",cat:"Veggie",time:"40m",serves:4,cal:250,pro:6,carb:38,fat:10,fiber:6,ing:["Butternut squash, onion, garlic","Veg stock, coconut cream","Cumin, chilli, bread"],stp:["Roast squash. Blend with stock. Add cream."]},
+{id:41,meal:"Beef Burgers",cat:"Meat",time:"20m",serves:4,cal:580,pro:34,carb:36,fat:32,fiber:2,ing:["500g beef mince, egg, breadcrumbs","Buns, lettuce, tomato","Cheese, pickles, sauces"],stp:["Shape patties. Grill 4-5 min per side. Assemble."]},
+{id:42,meal:"Chicken Gyros",cat:"Chicken",time:"25m",serves:4,cal:470,pro:36,carb:38,fat:18,fiber:3,ing:["600g chicken thighs","Oregano, cumin, paprika","Pitas, tzatziki, salad"],stp:["Cook marinated chicken. Fill pitas."]},
+{id:43,meal:"Pea & Mint Soup",cat:"Veggie",time:"20m",serves:4,cal:220,pro:10,carb:28,fat:8,fiber:7,ing:["Frozen peas, onion, garlic","Veg stock, mint","Crème fraîche, lemon, bread"],stp:["Sauté. Simmer peas. Blend with mint."]},
+{id:44,meal:"Meatball Sub",cat:"Meat",time:"35m",serves:4,cal:560,pro:30,carb:48,fat:26,fiber:3,ing:["500g beef mince, egg, breadcrumbs","Parmesan, marinara","Sub rolls, mozzarella, basil"],stp:["Roll and brown meatballs. Simmer. Fill rolls."]},
+{id:45,meal:"Salmon & Veg Tray",cat:"Fish",time:"25m",serves:2,cal:450,pro:38,carb:20,fat:24,fiber:4,ing:["2 salmon fillets","Broccoli, asparagus","Lemon, garlic, soy-honey glaze"],stp:["Arrange on tray. Glaze. Bake 200°C 18-20 min."]},
+{id:46,meal:"Halloumi Wraps",cat:"Veggie",time:"15m",serves:2,cal:440,pro:22,carb:38,fat:22,fiber:4,ing:["Halloumi, wraps, hummus","Mixed salad, pickled chillies","Pomegranate, mint"],stp:["Grill halloumi. Fill wraps."]}
+];
+const GROUPS=[{key:"Chicken",label:"🐔 Chicken",c:"var(--chicken)"},{key:"Fish",label:"🐟 Fish",c:"var(--fish)"},{key:"Veggie",label:"🥬 Vegetarian",c:"var(--veggie)"},{key:"Meat",label:"🥩 Other Meat",c:"var(--meat)"}];
+const CATS=["All","Chicken","Fish","Veggie","Meat","Imported"];
+const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DAYF=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+// ===== HELPERS =====
+function monOfWeek(offset){const n=new Date();const d=(n.getDay()+6)%7;const m=new Date(n);m.setDate(n.getDate()-d+(offset*7));return m}
+function weekDates(offset){const m=monOfWeek(offset);return DAYS.map((_,i)=>{const d=new Date(m);d.setDate(m.getDate()+i);return d})}
+function weekKey(offset){const m=monOfWeek(offset);return m.getFullYear()+'-W'+String(Math.ceil(((m-new Date(m.getFullYear(),0,1))/86400000+new Date(m.getFullYear(),0,1).getDay()+1)/7)).padStart(2,'0')}
+function fmtDateRange(offset){const d=weekDates(offset);return d[0].toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+d[6].toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function weekLabel(offset){if(offset===0)return'This Week';if(offset===1)return'Next Week';if(offset===-1)return'Last Week';return`Week +${offset}`}
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
+// ===== STATE =====
+let S={weeks:{},done:{},family:["Me"],calData:{},tab:"meals",imported:[],search:"",cat:"All",histMonth:new Date().getMonth(),histYear:new Date().getFullYear(),histSel:null,planWeekOffset:0,planSel:null,viewWeekOffset:0};
+let loaded=false;
+function allR(){return[...B,...S.imported.map((r,i)=>({...r,id:1000+i}))]}
+function getWeekPlan(offset){const k=weekKey(offset);if(!S.weeks[k])S.weeks[k]=DAYS.map(()=>[null]);return S.weeks[k]}
+function setWeekPlan(offset,data){S.weeks[weekKey(offset)]=data}
+
+// ===== STORAGE =====
+async function loadState(){
+  try{const r=await window.storage.get('mama-chef-v8',true);if(r&&r.value){const d=JSON.parse(r.value);Object.assign(S,d);if(!S.weeks)S.weeks={};if(!S.imported)S.imported=[]}}catch(e){}
+  try{const l=localStorage.getItem('mc8');if(l){const d=JSON.parse(l);if(!S.weeks||!Object.keys(S.weeks).length)Object.assign(S,d)}}catch(e){}
+  loaded=true;updateSync('Synced');renderAll();
+}
+async function saveState(){
+  try{await window.storage.set('mama-chef-v8',JSON.stringify(S),true);updateSync('Saved ✓')}catch(e){updateSync('Local only');try{localStorage.setItem('mc8',JSON.stringify(S))}catch(e2){}}
+}
+function updateSync(t){document.getElementById('sync-ind').textContent=t}
+if(window.storage){loadState()}else{try{const l=localStorage.getItem('mc8');if(l)Object.assign(S,JSON.parse(l))}catch(e){}loaded=true;updateSync('Local');renderAll()}
+
+// ===== TABS =====
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{S.tab=t.dataset.t;saveState();renderAll()}));
+function renderAll(){if(!loaded)return;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.t===S.tab));document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));document.getElementById('p-'+S.tab).classList.add('show');({meals:renderMeals,plan:renderPlan,recipes:renderRecipes,history:renderHistory})[S.tab]()}
+
+// ===== ANALYSIS =====
+function analyze(wd){
+  const R=allR(),alerts=[],groups={Chicken:0,Fish:0,Veggie:0,Meat:0},planned=[];
+  (wd||[]).forEach((dm,di)=>(dm||[]).forEach(rid=>{if(rid!==null){const r=R.find(x=>x.id===rid);if(r){planned.push(r);if(groups[r.cat]!==undefined)groups[r.cat]++}}}));
+  if(!planned.length)return{alerts,planned,groups};
+  const catDays={};(wd||[]).forEach((dm,di)=>(dm||[]).forEach(rid=>{if(rid===null)return;const r=R.find(x=>x.id===rid);if(!r)return;if(!catDays[r.cat])catDays[r.cat]=[];catDays[r.cat].push(DAYF[di])}));
+  ['Chicken','Meat','Fish'].forEach(cat=>{if((catDays[cat]||[]).length>=3)alerts.push({type:'warn',text:`${cat} appears ${catDays[cat].length}× this week`})});
+  const mc={};planned.forEach(r=>{mc[r.meal]=(mc[r.meal]||0)+1});
+  Object.entries(mc).forEach(([m,c])=>{if(c>1)alerts.push({type:'warn',text:`"${m}" is repeated ${c}×`})});
+  if(groups.Veggie<2)alerts.push({type:'bad',text:`Only ${groups.Veggie} veggie meal${groups.Veggie===1?'':'s'} — aim for 2+`});
+  else alerts.push({type:'good',text:`${groups.Veggie} veggie meals ✓`});
+  if(groups.Fish===0)alerts.push({type:'warn',text:'No fish this week'});
+  return{alerts,planned,groups};
+}
+
+// ===== THIS WEEK =====
+function renderMeals(){
+  const el=document.getElementById('p-meals');const R=allR();const wp=getWeekPlan(0);const dates=weekDates(0);const today=new Date();
+  if(!wp.some(d=>d.some(r=>r!==null))){el.innerHTML='<div class="info" style="padding:40px 20px;font-size:14px">No meals this week.<br>Go to <b>Plan</b> to build your week!</div>';return}
+  const a=analyze(wp);
+  let h='<div class="fam-row">';S.family.forEach(f=>{h+=`<div class="fam-chip active">${f}</div>`});h+='</div>';
+  a.alerts.forEach(al=>{h+=`<div class="alert alert-${al.type}"><span>${al.type==='warn'?'⚠️':al.type==='bad'?'❌':'✅'}</span><span>${al.text}</span></div>`});
+  h+='<div class="mrow">';GROUPS.forEach(g=>{h+=`<div class="mbox" style="border-left:3px solid ${g.c}"><div class="v">${a.groups[g.key]||0}</div><div class="l">${g.key}</div></div>`});h+='</div>';
+  wp.forEach((dm,di)=>{
+    const dateStr=dates[di].toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    const isPast=dates[di]<new Date(today.getFullYear(),today.getMonth(),today.getDate());
+    h+=`<div class="section-label">${DAYF[di]} ${dateStr}</div>`;
+    (dm||[]).forEach((rid,mi)=>{if(rid===null)return;const r=R.find(x=>x.id===rid);if(!r)return;
+      const k=di+'-'+mi,done=S.done[k];
+      h+=`<div class="card ${done?'done-card':''}"><div class="card-head" onclick="tMO('${k}')">
+        <div class="ck ${done?'on':''}" onclick="event.stopPropagation();tMD('${k}')"></div>
+        <span class="m-name">${r.meal}</span><span class="cat-tag cat-${r.cat}">${r.cat}</span>
+        <span class="m-time">${r.cal}cal</span><span class="arrow ${S._o===k?'open':''}">▼</span></div>
+        <div class="card-body ${S._o===k?'show':''}">
+        <div class="mrow"><div class="mbox"><div class="v" style="color:var(--redL)">${r.cal}</div><div class="l">Cal</div></div>
+        <div class="mbox"><div class="v" style="color:var(--blue)">${r.pro}g</div><div class="l">Pro</div></div>
+        <div class="mbox"><div class="v" style="color:var(--orange)">${r.carb}g</div><div class="l">Carb</div></div>
+        <div class="mbox"><div class="v" style="color:var(--purple)">${r.fat}g</div><div class="l">Fat</div></div></div>
+        <div class="stitle">Ingredients</div>`;r.ing.forEach(i=>{h+=`<div class="ing">• ${i}</div>`});
+      h+=`<div class="stitle">Method</div>`;r.stp.forEach((s,j)=>{h+=`<div class="stp"><div class="stp-n">${j+1}</div><div class="stp-t">${s}</div></div>`});
+      h+='</div></div>';
+    });
+  });
+  const eaten=[];wp.forEach((dm,di)=>(dm||[]).forEach((rid,mi)=>{if(rid!==null&&S.done[di+'-'+mi]){const r=R.find(x=>x.id===rid);if(r)eaten.push(r)}}));
+  if(eaten.length){const t={cal:0,pro:0,carb:0,fat:0};eaten.forEach(r=>{t.cal+=r.cal;t.pro+=r.pro;t.carb+=r.carb;t.fat+=r.fat});
+    h+=`<div class="card" style="padding:14px;margin-top:12px"><div class="section-label" style="margin-top:0">Eaten (${eaten.length})</div>
+    <div class="avg-row"><div class="avg-b"><div class="v" style="color:var(--redL)">${t.cal}</div><div class="l">Cal/person</div></div>
+    <div class="avg-b"><div class="v">${t.cal*S.family.length}</div><div class="l">Family</div></div></div></div>`}
+  el.innerHTML=h;
+}
+window.tMO=k=>{S._o=S._o===k?null:k;renderMeals()};
+window.tMD=k=>{S.done[k]=!S.done[k];const dk=todayKey(),R=allR(),wp=getWeekPlan(0),eaten=[];
+  wp.forEach((dm,di)=>(dm||[]).forEach((rid,mi)=>{if(rid!==null&&S.done[di+'-'+mi]){const r=R.find(x=>x.id===rid);if(r)eaten.push(r)}}));
+  const t={cal:0,pro:0,carb:0,fat:0,fiber:0,meals:[]};eaten.forEach(r=>{t.cal+=r.cal;t.pro+=r.pro;t.carb+=r.carb;t.fat+=r.fat;t.fiber+=r.fiber;t.meals.push(r.meal)});
+  t.family=S.family.length;S.calData[dk]=t;saveState();renderMeals()};
+
+// ===== PLAN =====
+function renderPlan(){
+  const el=document.getElementById('p-plan');const R=allR();const off=S.planWeekOffset;const dates=weekDates(off);const today=new Date();
+  const wp=getWeekPlan(off);const a=analyze(wp);
+  let h='<div class="section-label">Family</div><div class="fam-row">';
+  S.family.forEach((f,i)=>{h+=`<div class="fam-chip active" onclick="rmFam(${i})">${f} ✕</div>`});
+  h+=`<div class="fam-chip fam-add" onclick="document.getElementById('fi').classList.toggle('show')">+ Add</div></div>`;
+  h+=`<div class="fam-input" id="fi"><input placeholder="Name" id="fn"><button onclick="addFam()">Add</button></div>`;
+  // Week nav
+  h+=`<div class="week-nav"><button onclick="navWeek(-1)" ${off<=0?'disabled':''}>◀</button>
+  <div class="wn-title"><div class="wn-label">${weekLabel(off)}</div><div class="wn-dates">${fmtDateRange(off)}</div></div>
+  <button onclick="navWeek(1)" ${off>=3?'disabled':''}>▶</button></div>`;
+  // Week dots
+  h+='<div class="week-dots">';for(let w=0;w<=3;w++){const wk=getWeekPlan(w);const has=wk.some(d=>d.some(r=>r!==null));h+=`<div class="week-dot${w===off?' active':''}${has?' has-meals':''}" onclick="jumpWeek(${w})"></div>`}h+='</div>';
+  // Alerts
+  if(a.planned.length){a.alerts.forEach(al=>{h+=`<div class="alert alert-${al.type}"><span>${al.type==='warn'?'⚠️':al.type==='bad'?'❌':'✅'}</span><span>${al.text}</span></div>`})}
+  // 7-day grid
+  h+='<div class="plan-grid">';
+  dates.forEach((d,i)=>{
+    const isToday=d.toDateString()===today.toDateString();const isActive=S.planSel===i;
+    const isPast=d<new Date(today.getFullYear(),today.getMonth(),today.getDate())&&off===0;
+    const slots=wp[i]||[null];const meals=slots.map(rid=>{if(rid===null)return null;return R.find(x=>x.id===rid)}).filter(Boolean);
+    h+=`<div class="plan-cell${isActive?' active':''}${isToday?' today':''}${isPast?' past':''}" onclick="selPlan(${i})">
+      <div class="pc-day">${DAYS[i]}</div><div class="pc-date">${d.getDate()}</div><div class="pc-meals">`;
+    if(meals.length)meals.forEach(m=>{h+=`<span class="pc-meal cat-${m.cat}">${m.meal}</span>`});else h+=`<div class="pc-empty">+</div>`;
+    h+=`</div></div>`;
+  });h+='</div>';
+  // Group counts
+  h+='<div class="mrow">';GROUPS.forEach(g=>{h+=`<div class="mbox" style="border-left:3px solid ${g.c}"><div class="v">${a.groups[g.key]||0}</div><div class="l">${g.key}</div></div>`});h+='</div>';
+  // Editor
+  if(S.planSel!==null){
+    const di=S.planSel;const d=dates[di];
+    h+=`<div class="plan-editor"><h3>${DAYF[di]} ${d.getDate()}/${d.getMonth()+1}</h3>`;
+    const slots=wp[di]||[null];
+    const grouped={};GROUPS.forEach(g=>{grouped[g.key]=R.filter(r=>r.cat===g.key)});
+    slots.forEach((rid,si)=>{
+      h+=`<div class="plan-slot"><select onchange="setPS(${di},${si},this.value)"><option value="">— Pick a meal —</option>`;
+      GROUPS.forEach(g=>{h+=`<optgroup label="${g.label}">`;grouped[g.key].forEach(r=>{h+=`<option value="${r.id}"${rid===r.id?' selected':''}>${r.meal} (${r.cal}cal)</option>`});h+='</optgroup>'});
+      h+=`</select><div class="rm" onclick="rmS(${di},${si})">✕</div></div>`;
+    });
+    h+=`<button class="add-slot" onclick="addS(${di})">+ Add meal</button></div>`;
+  }else h+='<div class="info">Tap a day to add meals</div>';
+  // Totals
+  let tc=0,mc=0;wp.forEach(d=>(d||[]).forEach(rid=>{if(rid!==null){const r=R.find(x=>x.id===rid);if(r){tc+=r.cal;mc++}}}));
+  if(mc)h+=`<div class="card" style="padding:12px;text-align:center"><b>${mc} meals</b> · ~${tc} cal/person · ~${tc*S.family.length} family</div>`;
+  // Copy week buttons
+  if(off>0)h+=`<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-sm" style="flex:1" onclick="copyFrom(${off-1})">📋 Copy from ${weekLabel(off-1)}</button></div>`;
+  if(off<3)h+=`<div style="margin-top:6px"><button class="btn-sm" style="width:100%" onclick="copyTo(${off+1})">📋 Copy to ${weekLabel(off+1)}</button></div>`;
+  // Clear
+  h+=`<div style="margin-top:8px;text-align:center"><button class="btn-sm" style="color:var(--redL)" onclick="if(confirm('Clear this week?')){setWeekPlan(${off},DAYS.map(()=>[null]));S.planSel=null;saveState();renderPlan()}">Clear Week</button></div>`;
+  el.innerHTML=h;
+}
+window.navWeek=d=>{S.planWeekOffset=Math.max(0,Math.min(3,S.planWeekOffset+d));S.planSel=null;saveState();renderPlan()};
+window.jumpWeek=w=>{S.planWeekOffset=w;S.planSel=null;saveState();renderPlan()};
+window.selPlan=i=>{S.planSel=S.planSel===i?null:i;renderPlan()};
+window.addFam=()=>{const n=document.getElementById('fn').value.trim();if(n){S.family.push(n);saveState();renderPlan()}};
+window.rmFam=i=>{if(S.family.length>1){S.family.splice(i,1);saveState();renderPlan()}};
+window.setPS=(di,si,v)=>{const wp=getWeekPlan(S.planWeekOffset);wp[di][si]=v===''?null:parseInt(v);setWeekPlan(S.planWeekOffset,wp);saveState();renderPlan()};
+window.addS=di=>{const wp=getWeekPlan(S.planWeekOffset);wp[di].push(null);setWeekPlan(S.planWeekOffset,wp);saveState();renderPlan()};
+window.rmS=(di,si)=>{const wp=getWeekPlan(S.planWeekOffset);if(wp[di].length>1){wp[di].splice(si,1);setWeekPlan(S.planWeekOffset,wp);saveState();renderPlan()}};
+window.copyFrom=src=>{const d=getWeekPlan(src);setWeekPlan(S.planWeekOffset,d.map(x=>[...x]));saveState();renderPlan()};
+window.copyTo=dst=>{const d=getWeekPlan(S.planWeekOffset);setWeekPlan(dst,d.map(x=>[...x]));saveState();renderPlan()};
+
+// ===== RECIPES =====
+let impSt={loading:false,error:null,preview:null,bulkResults:[],bulkRunning:false};
+function renderRecipes(){
+  const el=document.getElementById('p-recipes');const R=allR();
+  let h=`<div class="import-box"><h3>📥 Import from URL</h3>
+  <div class="import-row"><input id="imp-url" placeholder="Paste recipe URL...">
+  <button class="import-btn" onclick="doImp()" ${impSt.loading?'disabled':''}>${impSt.loading?'...':'Import'}</button></div>`;
+  if(impSt.loading)h+=`<div class="import-status loading">⏳ Parsing...</div>`;
+  if(impSt.error)h+=`<div class="import-status error">❌ ${impSt.error}</div>`;
+  if(impSt.preview){const p=impSt.preview;
+    h+=`<div class="import-preview"><h4>✅ ${p.meal} <span class="cat-tag cat-${p.cat}">${p.cat}</span></h4>
+    <div style="font-size:12px;color:var(--muted)">${p.cal}cal · ${p.ing.length} ing · ${p.stp.length} steps</div>
+    <div class="import-actions"><button class="import-save" onclick="saveImp()">Add</button><button class="import-discard" onclick="discImp()">Discard</button></div></div>`}
+  h+=`</div><div class="import-box"><h3>📦 Bulk Import</h3>
+  <textarea class="bulk-area" id="bulk-urls" placeholder="One URL per line..."></textarea>
+  <button class="import-btn" style="margin-top:6px;width:100%" onclick="doBulk()" ${impSt.bulkRunning?'disabled':''}>${impSt.bulkRunning?'Working...':'Bulk Import'}</button>`;
+  if(impSt.bulkResults.length){h+='<div style="margin-top:8px">';impSt.bulkResults.forEach(b=>{h+=`<div class="bulk-item"><span>${b.status==='ok'?'✅':b.status==='err'?'❌':'⏳'}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis">${b.url.substring(0,40)}...</span>${b.meal?`<b>${b.meal}</b>`:''}</div>`});h+='</div>'}
+  h+='</div>';
+  h+=`<input class="search-box" placeholder="Search ${R.length} recipes..." value="${S.search||''}" oninput="S.search=this.value;renderRecipes()">`;
+  h+='<div class="cat-filters">';CATS.forEach(c=>{h+=`<div class="cat-f ${S.cat===c?'active':''}" onclick="S.cat='${c}';renderRecipes()">${c}</div>`});h+='</div>';
+  const q=(S.search||'').toLowerCase();
+  const filt=R.filter(r=>{if(S.cat==='Imported'&&r.id<1000)return false;if(S.cat!=='All'&&S.cat!=='Imported'&&r.cat!==S.cat)return false;if(q&&!r.meal.toLowerCase().includes(q))return false;return true});
+  if(S.cat==='All'){GROUPS.forEach(g=>{const gr=filt.filter(r=>r.cat===g.key);if(!gr.length)return;h+=`<div class="group-hdr group-${g.key}">${g.label} (${gr.length})</div>`;gr.forEach(r=>{h+=rCard(r)})})}
+  else filt.forEach(r=>{h+=rCard(r)});
+  if(!filt.length)h+='<div class="info">No recipes match</div>';
+  h+=`<div class="info">${R.length} recipes (${S.imported.length} imported)</div>`;el.innerHTML=h;
+}
+function rCard(r){const imp=r.id>=1000;let h=`<div class="card"><div class="card-head" onclick="tRO(${r.id})"><span class="m-name">${imp?'★ ':''}${r.meal}</span><span class="cat-tag cat-${r.cat}">${r.cat}</span><span class="m-time">${r.cal}cal</span><span class="arrow ${S._ro===r.id?'open':''}">▼</span></div><div class="card-body ${S._ro===r.id?'show':''}"><div class="mrow"><div class="mbox"><div class="v" style="color:var(--redL)">${r.cal}</div><div class="l">Cal</div></div><div class="mbox"><div class="v" style="color:var(--blue)">${r.pro}g</div><div class="l">Pro</div></div><div class="mbox"><div class="v" style="color:var(--orange)">${r.carb}g</div><div class="l">Carb</div></div><div class="mbox"><div class="v" style="color:var(--purple)">${r.fat}g</div><div class="l">Fat</div></div></div><div class="pills"><div class="pill">Fiber <b>${r.fiber}g</b></div><div class="pill">Serves <b>${r.serves}</b></div>${r.source?`<div class="pill">${r.source}</div>`:''}</div><div class="stitle">Ingredients</div>`;r.ing.forEach(i=>{h+=`<div class="ing">• ${i}</div>`});h+=`<div class="stitle">Method</div>`;r.stp.forEach((s,j)=>{h+=`<div class="stp"><div class="stp-n">${j+1}</div><div class="stp-t">${s}</div></div>`});if(imp)h+=`<div style="margin-top:10px;text-align:right"><button class="btn-sm" style="color:var(--redL)" onclick="event.stopPropagation();delImp(${r.id-1000})">Delete</button></div>`;h+='</div></div>';return h}
+window.tRO=id=>{S._ro=S._ro===id?null:id;renderRecipes()};
+window.delImp=i=>{if(confirm('Delete?')){S.imported.splice(i,1);saveState();renderRecipes()}};
+
+// ===== IMPORT API (GEMINI) =====
+async function getGeminiKey() {
+  let key = localStorage.getItem('gemini_api_key');
+  if (!key) {
+    key = prompt("Please enter your Google Gemini API Key to import recipes.\n(It will be saved locally on your device).");
+    if (key) {
+      localStorage.setItem('gemini_api_key', key.trim());
+    }
+  }
+  return key;
+}
+
+async function parseURL(url){
+  const apiKey = await getGeminiKey();
+  if (!apiKey) throw new Error("Gemini API key is required to import recipes.");
+
+  const promptText = `Extract the recipe from this URL: ${url}\nRespond ONLY with a valid JSON object matching this exact structure. Estimate macros if they are not provided. The 'cat' field MUST be exactly one of: "Chicken", "Fish", "Veggie", "Meat".\n{"meal":"Recipe Name","cat":"Chicken","time":"30m","serves":4,"cal":400,"pro":20,"carb":40,"fat":15,"fiber":3,"ing":["ingredient 1"],"stp":["step 1"],"source":"website name"}`;
+
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: promptText }] }],
+      generationConfig: { responseMimeType: "application/json" } 
+    })
+  });
+
+  const data = await resp.json();
+  
+  if (data.error) {
+    if (data.error.code === 403) {
+      localStorage.removeItem('gemini_api_key'); 
+      throw new Error("Invalid API Key. Please try again.");
+    }
+    throw new Error(data.error.message);
+  }
+
+  try {
+    const text = data.candidates[0].content.parts[0].text;
+    const r = JSON.parse(text);
+    
+    // Validation and Fallbacks
+    if(!r.meal || !r.ing) throw new Error('Incomplete data returned');
+    r.cal = parseInt(r.cal) || 400;
+    r.pro = parseInt(r.pro) || 20;
+    r.carb = parseInt(r.carb) || 40;
+    r.fat = parseInt(r.fat) || 15;
+    r.fiber = parseInt(r.fiber) || 3;
+    r.serves = parseInt(r.serves) || 4;
+    if(!['Chicken','Fish','Veggie','Meat'].includes(r.cat)) r.cat = 'Meat';
+    
+    return r;
+  } catch(e) {
+    throw new Error('Failed to parse recipe data from the website.');
+  }
+}
+
+window.doImp=async()=>{const url=document.getElementById('imp-url').value.trim();if(!url)return;impSt={...impSt,loading:true,error:null,preview:null};renderRecipes();try{impSt.preview=await parseURL(url);impSt.loading=false}catch(e){impSt.error=e.message;impSt.loading=false}renderRecipes()};
+window.saveImp=()=>{if(impSt.preview){S.imported.push(impSt.preview);impSt.preview=null;saveState();renderRecipes()}};
+window.discImp=()=>{impSt.preview=null;renderRecipes()};
+window.doBulk=async()=>{const urls=document.getElementById('bulk-urls').value.trim().split('\n').map(u=>u.trim()).filter(u=>u.startsWith('http'));if(!urls.length)return;impSt.bulkRunning=true;impSt.bulkResults=urls.map(u=>({url:u,status:'pending',meal:null}));renderRecipes();for(let i=0;i<urls.length;i++){impSt.bulkResults[i].status='loading';renderRecipes();try{const r=await parseURL(urls[i]);S.imported.push(r);await saveState();impSt.bulkResults[i]={url:urls[i],status:'ok',meal:r.meal}}catch(e){impSt.bulkResults[i]={url:urls[i],status:'err',meal:e.message}}renderRecipes()}impSt.bulkRunning=false;renderRecipes()};
+
+// ===== HISTORY =====
+function renderHistory(){const el=document.getElementById('p-history');const y=S.histYear,m=S.histMonth;const mName=new Date(y,m).toLocaleDateString('en-GB',{month:'long',year:'numeric'});const fd=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),ts=todayKey();let h=`<div class="cal-nav"><button onclick="calP()">◀</button><div class="cal-title">${mName}</div><button onclick="calN()">▶</button></div><div class="cal-grid">`;['M','T','W','T','F','S','S'].forEach(d=>{h+=`<div class="cal-hdr">${d}</div>`});for(let i=0;i<fd;i++)h+='<div class="cal-cell empty"></div>';for(let d=1;d<=dim;d++){const dk=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const data=S.calData[dk];h+=`<div class="cal-cell${data?' has-data':''}${dk===ts?' today':''}${dk===S.histSel?' selected':''}" onclick="selD('${dk}')"><div class="cd">${d}</div>${data?`<div class="cc">${data.cal}c</div>`:''}</div>`}h+='</div>';if(S.histSel&&S.calData[S.histSel]){const data=S.calData[S.histSel];const dt=new Date(S.histSel+'T12:00:00');h+=`<div class="cal-detail"><h3>${dt.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short',year:'numeric'})}</h3><div class="avg-row"><div class="avg-b"><div class="v" style="color:var(--redL)">${data.cal}</div><div class="l">Cal</div></div><div class="avg-b"><div class="v" style="color:var(--blue)">${data.pro}g</div><div class="l">Pro</div></div><div class="avg-b"><div class="v" style="color:var(--orange)">${data.carb}g</div><div class="l">Carb</div></div><div class="avg-b"><div class="v" style="color:var(--purple)">${data.fat}g</div><div class="l">Fat</div></div></div>${data.family?`<div style="font-size:12px;color:var(--muted);margin:6px 0">Family of ${data.family} → ${data.cal*data.family} cal</div>`:''}<div class="stitle">Meals</div>`;(data.meals||[]).forEach(m=>{h+=`<div class="cal-meal-item">🍽 ${m}</div>`});h+='</div>'}const mks=Object.keys(S.calData).filter(k=>k.startsWith(y+'-'+String(m+1).padStart(2,'0')));if(mks.length){const mt={cal:0,pro:0,carb:0,fat:0};mks.forEach(k=>{const d=S.calData[k];mt.cal+=d.cal;mt.pro+=d.pro;mt.carb+=d.carb;mt.fat+=d.fat});h+=`<div class="card" style="padding:14px;margin-top:12px"><div class="section-label" style="margin-top:0">Month — ${mks.length} days</div><div class="avg-row"><div class="avg-b"><div class="v">${Math.round(mt.cal/mks.length)}</div><div class="l">Avg Cal</div></div><div class="avg-b"><div class="v">${Math.round(mt.pro/mks.length)}g</div><div class="l">Pro</div></div><div class="avg-b"><div class="v">${Math.round(mt.carb/mks.length)}g</div><div class="l">Carb</div></div><div class="avg-b"><div class="v">${Math.round(mt.fat/mks.length)}g</div><div class="l">Fat</div></div></div></div>`}h+=`<div style="text-align:center;margin-top:14px"><button class="btn-sm" onclick="if(confirm('Clear?')){S.calData={};saveState();renderHistory()}">Clear</button></div>`;el.innerHTML=h}
+window.calP=()=>{S.histMonth--;if(S.histMonth<0){S.histMonth=11;S.histYear--}S.histSel=null;saveState();renderHistory()};
+window.calN=()=>{S.histMonth++;if(S.histMonth>11){S.histMonth=0;S.histYear++}S.histSel=null;saveState();renderHistory()};
+window.selD=dk=>{S.histSel=S.histSel===dk?null:dk;saveState();renderHistory()};
+</script>
+</body>
+</html>
