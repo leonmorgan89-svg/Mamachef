@@ -14,7 +14,7 @@
 .page{display:none;padding:10px}.page.show{display:block}
 .card{background:var(--card);border-radius:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);overflow:hidden}
 .card-head{display:flex;align-items:center;padding:12px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;flex-wrap:wrap;gap:4px}
-.arrow{font-size:16px;color:#bbb;margin-left:6px;transition:transform .3s}.arrow.open{transform:rotate(180deg)}
+.arrow{font-size:16px;color:#bbb;margin-left:6px;transition:trasadnsform .3s}.arrow.open{transform:rotate(180deg)}
 .card-body{display:none;padding:0 14px 14px}.card-body.show{display:block}
 .ck{width:24px;height:24px;border:2.5px solid #ccc;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-right:10px;transition:.2s;cursor:pointer}
 .ck.on{background:var(--green);border-color:var(--green)}.ck.on::after{content:'✓';color:#fff;font-size:13px;font-weight:700}
@@ -368,7 +368,7 @@ async function parseURL(url){
 
   const promptText = `Extract the recipe from this URL: ${url}\nRespond ONLY with a valid JSON object matching this exact structure. Estimate macros if they are not provided. The 'cat' field MUST be exactly one of: "Chicken", "Fish", "Veggie", "Meat".\n{"meal":"Recipe Name","cat":"Chicken","time":"30m","serves":4,"cal":400,"pro":20,"carb":40,"fat":15,"fiber":3,"ing":["ingredient 1"],"stp":["step 1"],"source":"website name"}`;
 
-  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
